@@ -222,14 +222,15 @@ jobs:
         shopt -s extglob
         mkdir -p firmware/${{matrix.target}}
         cp -rf openwrt/bin/targets/*/*/*{combined,sysupgrade}* ./firmware/${{matrix.target}}/ || true
-        cp openwrt/${{matrix.target}}.config  ./firmware/${{matrix.target}}/${{matrix.target}}.config || true
-        cp openwrt/build_dir/target-*/linux-*/linux-*/.config ./firmware/${{matrix.target}}/${{matrix.target}}_kernel.config
+        cp openwrt/${{matrix.target}}.config  openwrt/bin/targets/*/*/${{matrix.target}}.config || true
+        cp openwrt/build_dir/target-*/linux-*/linux-*/.config openwrt/bin/targets/*/*/${{matrix.target}}_kernel.config
+        mv -f openwrt/bin/targets/*/*/packages openwrt/bin/targets/*/*/${{ env.KERNEL }}
+        mkdir openwrt/bin/targets/*/*/packages
+        cp -rf openwrt/bin/targets/*/*/${{ env.KERNEL }}/Packages* openwrt/bin/targets/*/*/packages/
         rename -v "s/openwrt-/${{ env.VERSION }}-openwrt-/" ./firmware/*/* || true
         rename -v "s/friendlyarm_//" ./firmware/*/*gz || true
         rename -v "s/embedfire_//" ./firmware/*/*gz || true
         rename -v "s/xiaomi_redmi-router/redmi/" ./firmware/*/*bin || true
-        mkdir ${{ env.REPO_BRANCH }}
-        cp -rf openwrt/bin/targets ${{ env.REPO_BRANCH }}/
         Emoji=("🎉" "🤞" "✨" "🎁" "🎈" "🎄" "🎨" "💋" "🍓" "🍕" "🍉" "💐" "🌴" "🚀" "🛸" "🗽" "⛅" "🌈" "🔥" "⛄" "🐶" "🏅" "🦄" "🐤")
         echo "EMOJI=${Emoji[$[$RANDOM % ${#Emoji[@]}]]}" >> $GITHUB_ENV
         if [ ${{matrix.target}} == "x86_64" ]; then
@@ -254,7 +255,7 @@ jobs:
       with:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         ARGS: "-avzr"
-        SOURCE: ${{ env.REPO_BRANCH }}
+        SOURCE: openwrt/bin/targets
         REMOTE_HOST: op.supes.top
         REMOTE_USER: root
         TARGET: "/www/wwwroot/op.supes.top/releases/tmp/"
